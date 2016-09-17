@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import ru.itchannel.ycsearcher.distribute.VisitedUrlsSet;
 import ru.itchannel.ycsearcher.service.PageService;
@@ -14,7 +16,7 @@ import java.util.concurrent.BlockingQueue;
 
 @Component
 @Scope("prototype")
-public class Searcher implements Runnable {
+public class Searcher {
 
     private static final Logger log = LoggerFactory.getLogger(Searcher.class);
     @Autowired
@@ -23,12 +25,13 @@ public class Searcher implements Runnable {
     private PageService pageService;
     @Autowired
     private VisitedUrlsSet visitedUrlsSet;
+    @Autowired
+    private ThreadPoolTaskExecutor taskExecutor;
     @Value("${app.max.processing.queue.size}")
     private int maxPocessingQueueuSize;
-    private boolean shouldBeTerminated = false;
 
-    @Override
-    public void run() {
+    @Async
+    public void start() {
         log.info("Searcher statred");
         while (!isShouldBeTerminated()) {
             try {
@@ -41,7 +44,7 @@ public class Searcher implements Runnable {
     }
 
     private boolean isShouldBeTerminated() {
-        return shouldBeTerminated;
+        return taskExecutor.getThreadPoolExecutor().isShutdown();
     }
 
     private void processing() {
