@@ -9,12 +9,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import ru.itchannel.ycsearcher.concurrent.Searcher;
 import ru.itchannel.ycsearcher.distribute.ChannelPool;
-import ru.itchannel.ycsearcher.distribute.impl.ChannelPoolImpl;
+import ru.itchannel.ycsearcher.dto.Channel;
 import ru.itchannel.ycsearcher.service.PageService;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -24,6 +25,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 @SpringBootApplication
 public class YoutubeChannelSearcherApplication {
     public static final String CHANNELS_MAP = "CHANNELS_MAP";
+    public static final String VISITED_URLS_SET = "VISITED_URLS_SET";
     private static final Logger log = LoggerFactory.getLogger(YoutubeChannelSearcherApplication.class);
     @Value("${app.url.youtube.host}")
     private String youtubeHost;
@@ -48,10 +50,10 @@ public class YoutubeChannelSearcherApplication {
     }
 
     @Bean
-    public ExecutorService executorService(BlockingQueue<String> processingQueue) {
+    public ExecutorService executorService(ApplicationContext context) {
         ExecutorService executorService = Executors.newFixedThreadPool(parallelSearchersQuantity);
         for (int i = parallelSearchersQuantity; i > 0; i--) {
-            executorService.execute(new Searcher(processingQueue, pageService, maxPocessingQueueuSize));
+            executorService.execute((Runnable) context.getBean("searcher"));
         }
         return executorService;
     }
@@ -62,8 +64,13 @@ public class YoutubeChannelSearcherApplication {
     }
 
     @Bean
-    public ChannelPool channelPool() {
-        return new ChannelPoolImpl(hazelcastInstance().getMap(CHANNELS_MAP));
+    public Map<String, Channel> channelPool(HazelcastInstance hazelcastInstance) {
+        return hazelcastInstance.getMap(CHANNELS_MAP);
+    }
+
+    @Bean
+    public Map<String, Object> visitedUrlsMap(HazelcastInstance hazelcastInstance) {
+        return hazelcastInstance.getMap(VISITED_URLS_SET);
     }
 
     @Bean
