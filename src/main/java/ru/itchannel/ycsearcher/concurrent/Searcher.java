@@ -3,6 +3,7 @@ package ru.itchannel.ycsearcher.concurrent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Async;
@@ -26,9 +27,10 @@ public class Searcher {
     @Autowired
     private VisitedUrlsSet visitedUrlsSet;
     @Autowired
+    @Qualifier("asyncSearchExecutor")
     private ThreadPoolTaskExecutor taskExecutor;
     @Value("${app.max.processing.queue.size}")
-    private int maxPocessingQueueuSize;
+    private int maxProcessingQueueSize;
 
     @Async
     public void start() {
@@ -69,7 +71,7 @@ public class Searcher {
             queue.add(pageUrl);
             throw e;
         }
-        if (nextUrls != null && queue.size() < maxPocessingQueueuSize) {
+        if (nextUrls != null && queue.size() < maxProcessingQueueSize) {
             queue.addAll(nextUrls);
         }
         log.info("Processing finished");
