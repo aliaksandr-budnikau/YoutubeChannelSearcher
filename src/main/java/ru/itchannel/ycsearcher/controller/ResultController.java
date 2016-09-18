@@ -23,7 +23,6 @@ public class ResultController {
     public String findAll() {
         Map<String, Object> map = new HashMap<>();
         Collection<Channel> all = channelPool.findAll();
-        all.size();
         map.put("count", all.size());
         map.put("channels", all);
         return map.toString();

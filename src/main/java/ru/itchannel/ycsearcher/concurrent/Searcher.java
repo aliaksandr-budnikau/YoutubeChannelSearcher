@@ -50,8 +50,8 @@ public class Searcher {
     }
 
     private void processing() {
-        log.info("Processing started");
-        log.info("Queue size " + queue.size());
+        log.debug("Processing started");
+        log.debug("Queue size " + queue.size());
         Set<String> nextUrls;
         String pageUrl = null;
         try {
@@ -60,10 +60,10 @@ public class Searcher {
             throw new RuntimeException("Error occured before processing url " + pageUrl, e);
         }
         if (visitedUrlsSet.isContains(pageUrl)) {
-            log.info("Processing page url " + pageUrl + " skipped. Already processed.");
+            log.debug("Processing page url " + pageUrl + " skipped. Already processed.");
             return;
         }
-        log.info("Processing page url " + pageUrl + " started");
+        log.debug("Processing page url " + pageUrl + " started");
         try {
             nextUrls = pageService.processVideoPage(pageUrl);
             visitedUrlsSet.add(pageUrl);
@@ -74,6 +74,6 @@ public class Searcher {
         if (nextUrls != null && queue.size() < maxProcessingQueueSize) {
             queue.addAll(nextUrls);
         }
-        log.info("Processing finished");
+        log.debug("Processing finished");
     }
 }
