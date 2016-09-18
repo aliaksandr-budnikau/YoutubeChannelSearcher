@@ -9,45 +9,39 @@ import org.springframework.stereotype.Component;
 import ru.itchannel.ycsearcher.distribute.ChannelPool;
 import ru.itchannel.ycsearcher.dto.PerformanceSummary;
 
-import javax.annotation.PostConstruct;
+import java.util.LinkedList;
+import java.util.List;
 
 @Component
 public class PerformanceMonitor {
 
     public static final int MILLIS_PER_SECOND = 1000;
     private static final Logger log = LoggerFactory.getLogger(PerformanceMonitor.class);
-    private static final Object object = new Object();
     @Autowired
     private ChannelPool channelPool;
     @Value("${app.rate.between.result.snapshots}")
     private int rateBetweenResultSnapshots;
-    private PerformanceSummary summarySnapshot;
-    private PerformanceSummary summary;
-
-    @PostConstruct
-    public void init() {
-        log.info("Init performance monitor");
-        summary = new PerformanceSummary();
-        summarySnapshot = new PerformanceSummary();
-    }
+    private PerformanceSummary summary = new PerformanceSummary();
+    private List<PerformanceSummary> summaryHistory = new LinkedList<>();
 
     @Scheduled(fixedDelayString = "${app.perfomance.monitor.execution.delay}")
     public void start() {
         try {
             benchmark();
-            synchronized (object) {
-                makeSnapshot();
-            }
+            summaryHistory.add(getCopy(summary));
         } catch (Throwable t) {
             log.error("Error: ", t);
         }
         log.info("Stop performance monitor");
     }
 
-    private void makeSnapshot() {
-        summarySnapshot.setMinSpeed(summary.getMinSpeed());
-        summarySnapshot.setMaxSpeed(summary.getMaxSpeed());
-        summarySnapshot.setCurrentSpeed(summary.getCurrentSpeed());
+    private PerformanceSummary getCopy(PerformanceSummary source) {
+        PerformanceSummary target = new PerformanceSummary();
+        target.setMinSpeed(source.getMinSpeed());
+        target.setMaxSpeed(source.getMaxSpeed());
+        target.setCurrentSpeed(source.getCurrentSpeed());
+        target.setChannelsCount(source.getChannelsCount());
+        return target;
     }
 
     private void benchmark() throws InterruptedException {
@@ -68,13 +62,11 @@ public class PerformanceMonitor {
         summary.setMinSpeed(Math.min(summary.getMinSpeed(), currentSpeed));
         summary.setMaxSpeed(Math.max(summary.getMaxSpeed(), currentSpeed));
         summary.setCurrentSpeed(currentSpeed);
+        summary.setChannelsCount(startChannelCount);
         log.info("Performance summary {}", summary);
     }
 
-    public PerformanceSummary getSummary() {
-        synchronized (object) {
-            log.info("Get summary {}", summarySnapshot);
-            return summarySnapshot;
-        }
+    public List<PerformanceSummary> getPerformanceSummaryHistory() {
+        return summaryHistory;
     }
 }

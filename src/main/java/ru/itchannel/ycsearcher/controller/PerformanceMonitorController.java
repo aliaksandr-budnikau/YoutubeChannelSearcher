@@ -1,29 +1,31 @@
 package ru.itchannel.ycsearcher.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 import ru.itchannel.ycsearcher.concurrent.PerformanceMonitor;
-import ru.itchannel.ycsearcher.dto.PerformanceSummary;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
-@Controller
+@RestController
 public class PerformanceMonitorController {
 
     @Autowired
     private PerformanceMonitor monitor;
 
-    @RequestMapping(value = "/performance", method = RequestMethod.GET)
-    @ResponseBody
-    public String findAll() {
-        PerformanceSummary summary = monitor.getSummary();
-        HashMap<String, Double> map = new HashMap<>();
-        map.put("currentSpeed", summary.getCurrentSpeed());
-        map.put("maxSpeed", summary.getMaxSpeed());
-        map.put("minSpeed", summary.getMinSpeed());
-        return map.toString();
+    @GetMapping("/performance")
+    public HashMap getPerformanceSummaryHistory() {
+        List<Integer> x = new LinkedList<>();
+        List<Double> y = new LinkedList<>();
+        monitor.getPerformanceSummaryHistory().forEach(it -> {
+            x.add(it.getChannelsCount());
+            y.add(it.getCurrentSpeed());
+        });
+        HashMap map = new HashMap();
+        map.put("x", x);
+        map.put("y", y);
+        return map;
     }
 }
