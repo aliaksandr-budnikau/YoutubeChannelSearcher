@@ -35,6 +35,11 @@ public class DocumentImpl implements Document {
     }
 
     @Override
+    public String getUrl() {
+        return url;
+    }
+
+    @Override
     public String toString() {
         return "DocumentImpl{" +
                 "url='" + url + '\'' +

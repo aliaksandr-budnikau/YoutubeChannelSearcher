@@ -33,6 +33,7 @@ public class PerformanceMonitor {
 
     @Scheduled(fixedDelayString = "${app.perfomance.monitor.execution.delay}")
     public void start() {
+        log.info("Start performance monitor");
         try {
             benchmark();
             synchronized (object) {

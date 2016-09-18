@@ -23,8 +23,7 @@ public class PageServiceImpl implements PageService {
     private ChannelPool channelPool;
 
     @Override
-    public Set<String> processVideoPage(String pageUrl) {
-        Document document = videoPageDao.getDocument(pageUrl);
+    public Set<String> parseVideoPage(Document document) {
         String channelUrl = videoPageDao.getChannelUrl(document);
         if (channelPool.isNotExists(channelUrl)) {
             Channel channel = new Channel();
@@ -41,5 +40,10 @@ public class PageServiceImpl implements PageService {
             log.info(String.valueOf(channelPool.size()));
         }
         return videoPageDao.getNextUrls(document);
+    }
+
+    @Override
+    public Document getDocument(String pageUrl) {
+        return videoPageDao.getDocument(pageUrl);
     }
 }

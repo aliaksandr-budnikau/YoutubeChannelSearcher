@@ -2,38 +2,36 @@ package ru.itchannel.ycsearcher;
 
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.hazelcast.core.IMap;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import ru.itchannel.ycsearcher.concurrent.Searcher;
-import ru.itchannel.ycsearcher.distribute.ChannelPool;
+import ru.itchannel.ycsearcher.concurrent.VideoPageLoader;
+import ru.itchannel.ycsearcher.concurrent.VideoPageParser;
+import ru.itchannel.ycsearcher.dao.parser.Document;
+import ru.itchannel.ycsearcher.distribute.UrlsSet;
+import ru.itchannel.ycsearcher.distribute.impl.UrlsSetImpl;
 import ru.itchannel.ycsearcher.dto.Channel;
-import ru.itchannel.ycsearcher.service.PageService;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 @SpringBootApplication
 public class YoutubeChannelSearcherApplication {
     public static final String CHANNELS_MAP = "CHANNELS_MAP";
-    public static final String VISITED_URLS_SET = "VISITED_URLS_SET";
-    private static final Logger log = LoggerFactory.getLogger(YoutubeChannelSearcherApplication.class);
+    public static final String LOADED_URLS_SET = "LOADED_URLS_SET";
+    public static final String PARSED_URLS_SET = "PARSED_URLS_SET";
     @Value("${app.first.page.url}")
     private String firstPageUrl;
-    @Value("${app.parallel.searchers.quantity}")
-    private int parallelSearchersQuantity;
-    @Autowired
-    private PageService pageService;
-    @Autowired
-    private ChannelPool channelPool;
+    @Value("${app.parallel.page.loader.quantity}")
+    private int parallelPageLoaderQuantity;
+    @Value("${app.parallel.page.parser.quantity}")
+    private int parallelPageParserQuantity;
 
     public static void main(String[] args) {
         SpringApplication.run(YoutubeChannelSearcherApplication.class, args);
@@ -45,7 +43,12 @@ public class YoutubeChannelSearcherApplication {
     }
 
     @Bean
-    public BlockingQueue<String> processingQueue() {
+    public BlockingQueue<String> urlsQueue() {
+        return new LinkedBlockingQueue<>();
+    }
+
+    @Bean
+    public BlockingQueue<Document> videoPagesQueue() {
         return new LinkedBlockingQueue<>();
     }
 
@@ -55,20 +58,30 @@ public class YoutubeChannelSearcherApplication {
     }
 
     @Bean
-    public Map<String, Object> visitedUrlsMap(HazelcastInstance hazelcastInstance) {
-        return hazelcastInstance.getMap(VISITED_URLS_SET);
+    public UrlsSet loadedPagesUrls(HazelcastInstance hazelcastInstance) {
+        IMap<String, Object> map = hazelcastInstance.getMap(LOADED_URLS_SET);
+        return new UrlsSetImpl(map);
     }
 
     @Bean
-    public CommandLineRunner run(BlockingQueue<String> processingQueue, ApplicationContext context) {
-        return args -> {
-            log.info("All: " + channelPool.findAll().toString());
-            Set<String> nextUrls = pageService.processVideoPage(firstPageUrl);
-            processingQueue.addAll(nextUrls);
+    public UrlsSet parsedPagesUrls(HazelcastInstance hazelcastInstance) {
+        IMap<String, Object> map = hazelcastInstance.getMap(PARSED_URLS_SET);
+        return new UrlsSetImpl(map);
+    }
 
-            for (int i = parallelSearchersQuantity; i > 0; i--) {
-                Searcher searcher = (Searcher) context.getBean("searcher");
-                searcher.start();
+    @Bean
+    public CommandLineRunner run(@Qualifier("urlsQueue") BlockingQueue<String> urlsQueue, ApplicationContext context) {
+        return args -> {
+            urlsQueue.put(firstPageUrl);
+
+            for (int i = parallelPageLoaderQuantity; i > 0; i--) {
+                VideoPageLoader loader = (VideoPageLoader) context.getBean("videoPageLoader");
+                loader.start();
+            }
+
+            for (int i = parallelPageParserQuantity; i > 0; i--) {
+                VideoPageParser parser = (VideoPageParser) context.getBean("videoPageParser");
+                parser.start();
             }
         };
     }
