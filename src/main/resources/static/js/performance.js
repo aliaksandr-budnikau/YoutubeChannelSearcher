@@ -1,14 +1,19 @@
-$(document).ready(function() {
+$(document).ready(function () {
     $.ajax({
         url: "http://localhost:8080/performance"
-    }).then(function(data) {
-        var trace = {
-            x: data.x,
-            y: data.y,
-            type: 'scatter'
+    }).then(function (data) {
+        var speed = {
+            y: data.speed,
+            type: 'scatter',
+            name: 'speed'
         };
-        var data = [trace];
-        Plotly.newPlot('plot', data);
-        $('.greeting-id').append(data);
+        Plotly.newPlot('speed', [speed]);
+
+        var quantity = {
+            y: data.quantity,
+            type: 'scatter',
+            name: 'quantity'
+        };
+        Plotly.newPlot('quantity', [quantity]);
     });
 });

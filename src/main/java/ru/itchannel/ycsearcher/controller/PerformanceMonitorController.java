@@ -17,15 +17,15 @@ public class PerformanceMonitorController {
 
     @GetMapping("/performance")
     public HashMap getPerformanceSummaryHistory() {
-        List<Integer> x = new LinkedList<>();
-        List<Double> y = new LinkedList<>();
+        List<Double> speed = new LinkedList<>();
+        List<Integer> quantity = new LinkedList<>();
         monitor.getPerformanceSummaryHistory().forEach(it -> {
-            x.add(it.getChannelsCount());
-            y.add(it.getCurrentSpeed());
+            quantity.add(it.getChannelsCount());
+            speed.add(it.getCurrentSpeed());
         });
         HashMap map = new HashMap();
-        map.put("x", x);
-        map.put("y", y);
+        map.put("speed", speed);
+        map.put("quantity", quantity);
         return map;
     }
 }
