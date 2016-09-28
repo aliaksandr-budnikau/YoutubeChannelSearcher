@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.itchannel.ycsearcher.distribute.ChannelPool;
-import ru.itchannel.ycsearcher.dto.Channel;
+import ru.itchannel.ycsearcher.dto.ChannelDto;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -19,7 +19,7 @@ public class ResultController {
     @GetMapping("/result")
     public String findAll() {
         Map<String, Object> map = new HashMap<>();
-        Collection<Channel> all = channelPool.findAll();
+        Collection<ChannelDto> all = channelPool.findAll();
         map.put("count", all.size());
         map.put("channels", all);
         return map.toString();

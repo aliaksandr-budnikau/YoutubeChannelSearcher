@@ -8,7 +8,7 @@ import ru.itchannel.ycsearcher.dao.VideoPageDao;
 import ru.itchannel.ycsearcher.dao.exception.HiddenSubscribersCounterException;
 import ru.itchannel.ycsearcher.dao.parser.Document;
 import ru.itchannel.ycsearcher.distribute.ChannelPool;
-import ru.itchannel.ycsearcher.dto.Channel;
+import ru.itchannel.ycsearcher.dto.ChannelDto;
 import ru.itchannel.ycsearcher.service.PageService;
 
 import java.util.Set;
@@ -27,17 +27,17 @@ public class PageServiceImpl implements PageService {
         Document document = videoPageDao.getDocument(pageUrl);
         String channelUrl = videoPageDao.getChannelUrl(document);
         if (channelPool.isNotExists(channelUrl)) {
-            Channel channel = new Channel();
-            channel.setUrl(channelUrl);
-            channel.setName(videoPageDao.getChannelName(document));
+            ChannelDto channelDto = new ChannelDto();
+            channelDto.setUrl(channelUrl);
+            channelDto.setName(videoPageDao.getChannelName(document));
             try {
-                channel.setSubscribersCount(videoPageDao.getChannelSubscribersCount(document));
+                channelDto.setSubscribersCount(videoPageDao.getChannelSubscribersCount(document));
             } catch (HiddenSubscribersCounterException e) {
                 log.info(e.getMessage(), e);
-                channel.setSubscribersCount(-1);
+                channelDto.setSubscribersCount(-1);
             }
-            channelPool.put(channel);
-            log.info(String.valueOf(channel));
+            channelPool.put(channelDto);
+            log.info(String.valueOf(channelDto));
             log.info(String.valueOf(channelPool.size()));
         }
         return videoPageDao.getNextUrls(document);

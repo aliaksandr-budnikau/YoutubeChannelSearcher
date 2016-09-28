@@ -1,18 +1,18 @@
 package ru.itchannel.ycsearcher.distribute;
 
-import ru.itchannel.ycsearcher.dto.Channel;
+import ru.itchannel.ycsearcher.dto.ChannelDto;
 
 import java.util.Collection;
 
 public interface ChannelPool {
 
-    Channel findByUrl(String url);
+    ChannelDto findByUrl(String url);
 
     boolean isNotExists(String url);
 
-    void put(Channel channel);
+    void put(ChannelDto channelDto);
 
-    Collection<Channel> findAll();
+    Collection<ChannelDto> findAll();
 
     int size();
 }

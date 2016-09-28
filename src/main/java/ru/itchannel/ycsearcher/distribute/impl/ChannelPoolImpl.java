@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.itchannel.ycsearcher.distribute.ChannelPool;
-import ru.itchannel.ycsearcher.dto.Channel;
+import ru.itchannel.ycsearcher.dto.ChannelDto;
 
 import java.util.Collection;
 import java.util.Map;
@@ -14,10 +14,10 @@ public class ChannelPoolImpl implements ChannelPool {
 
     @Autowired
     @Qualifier("channelPool")
-    private Map<String, Channel> channels;
+    private Map<String, ChannelDto> channels;
 
     @Override
-    public Channel findByUrl(String url) {
+    public ChannelDto findByUrl(String url) {
         return channels.get(url);
     }
 
@@ -27,12 +27,12 @@ public class ChannelPoolImpl implements ChannelPool {
     }
 
     @Override
-    public void put(Channel channel) {
-        channels.put(channel.getUrl(), channel);
+    public void put(ChannelDto channelDto) {
+        channels.put(channelDto.getUrl(), channelDto);
     }
 
     @Override
-    public Collection<Channel> findAll() {
+    public Collection<ChannelDto> findAll() {
         return channels.values();
     }
 

@@ -3,7 +3,7 @@ package ru.itchannel.ycsearcher.dto;
 import java.io.Serializable;
 import java.util.Objects;
 
-public class Channel implements Serializable {
+public class ChannelDto implements Serializable {
     private long subscribersCount;
     private String name;
     private String url;
@@ -36,10 +36,10 @@ public class Channel implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Channel channel = (Channel) o;
-        return Objects.equals(subscribersCount, channel.subscribersCount) &&
-                Objects.equals(name, channel.name) &&
-                Objects.equals(url, channel.url);
+        ChannelDto channelDto = (ChannelDto) o;
+        return Objects.equals(subscribersCount, channelDto.subscribersCount) &&
+                Objects.equals(name, channelDto.name) &&
+                Objects.equals(url, channelDto.url);
     }
 
     @Override
@@ -49,7 +49,7 @@ public class Channel implements Serializable {
 
     @Override
     public String toString() {
-        return "Channel{" +
+        return "ChannelDto{" +
                 "subscribersCount=" + subscribersCount +
                 ", name='" + name + '\'' +
                 ", url='" + url + '\'' +
